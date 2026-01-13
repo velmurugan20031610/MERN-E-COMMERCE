@@ -1,48 +1,59 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { makeAuthenticatedRequest } from '../service/axiosService';
-import { uploadFileOnFirebase } from '../service/firebaseService';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { makeAuthenticatedRequest } from "../service/axiosService";
 
-export const createProduct = createAsyncThunk(('product/create'), async({productImage, formData}, { rejectWithValue }) => {
+/* ===============================
+   CREATE PRODUCT (ADMIN)
+================================ */
+export const createProduct = createAsyncThunk(
+  "product/create",
+  async (formData, { rejectWithValue }) => {
     try {
-        const imagePath = await uploadFileOnFirebase(productImage)
-        formData.imagePath = imagePath?.metadata?.fullPath
-        const response = await makeAuthenticatedRequest('api/product/create', 'POST', formData)
-
-        return response
+      const response = await makeAuthenticatedRequest(
+        "api/product/create",
+        "POST",
+        formData
+      );
+      return response.data;
     } catch (error) {
-        return rejectWithValue({ message: error })
+      return rejectWithValue(error.response?.data || error.message);
     }
-});
+  }
+);
 
+/* ===============================
+   PRODUCT SLICE
+================================ */
 const productSlice = createSlice({
-  name: 'product',
+  name: "product",
   initialState: {
     loading: false,
-    productData: {},
+    productData: null,
     status: null,
-    error: null
+    error: null,
   },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-    .addCase(createProduct.pending, (state) => {
-        state.loading = true,
-        state.productData = null,
-        state.error = null
-        state.message = null
-    })
-    .addCase(createProduct.fulfilled, (state, action) => {
-        state.loading = false,
-        state.productData = action.payload,
-        state.error = null,
-        state.status = "Success"
-    })
-    .addCase(createProduct.rejected, (state, action) => {
-        state.loading = false,
-        state.productData =null,
-        state.error = action.error,
-        state.status = "Error"
-    })
-  }
+
+      /* CREATE PRODUCT */
+      .addCase(createProduct.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.status = "loading";
+      })
+
+      .addCase(createProduct.fulfilled, (state, action) => {
+        state.loading = false;
+        state.productData = action.payload;
+        state.status = "success";
+      })
+
+      .addCase(createProduct.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Product upload failed";
+        state.status = "error";
+      });
+  },
 });
 
 export default productSlice.reducer;

@@ -1,21 +1,25 @@
 module.exports = mongoose => {
-    var schema = mongoose.Schema(
-        {
-            title: String,
-            description: String,
-            price: String,
-            image_path: String
-        },
-        {
-            timestamps: true
-        }
-    );
+  const schema = mongoose.Schema(
+    {
+      title: String,
+      description: String,
+      price: Number,
+      imagePath: String,
 
-    schema.method("toJSON", function() {
-        const { __v, _id, ...object } = this.toObject();
-        object.id = _id;
-        return object;
-    });
+      // ✅ CATEGORY
+      category: {
+        type: String,
+        required: true,
+      },
+    },
+    { timestamps: true }
+  );
 
-    return mongoose.model("product", schema);
-}
+  schema.method("toJSON", function () {
+    const { __v, _id, ...object } = this.toObject();
+    object.id = _id;
+    return object;
+  });
+
+  return mongoose.model("product", schema);
+};

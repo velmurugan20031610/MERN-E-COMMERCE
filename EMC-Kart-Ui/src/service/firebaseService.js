@@ -1,41 +1,26 @@
-import {  signInWithEmailAndPassword   } from 'firebase/auth'
-import { auth } from '../config/firebase'
-import { firebaseStorage } from '../config/firebase'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { generateRandomText } from '../utility/commonFunc'
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 
-export const firebaseLogin = (user) => {
-    return signInWithEmailAndPassword(auth, user.email, user.password)
-}
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+};
 
-export const getUserAuthToken = async () => {
-    return auth?.currentUser ? auth.currentUser.getIdToken() : null
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-export const signoutFirebaseUser = async () => {
-    try {
-        await auth.signOut();
-        // Handle any additional logic after successful logout
-    } catch (error) {
-        // Handle any errors that occur during logout
-        console.error('Error logging out:', error);
-    }
-}
+export const firebaseLogin = ({ email, password }) =>
+  signInWithEmailAndPassword(auth, email, password);
 
-export const uploadFileOnFirebase = (image) => {
-    const uploadTask = ref(firebaseStorage, `images/${generateRandomText() + '-' + image.name}`)
-    return uploadBytes(uploadTask, image)
-}
+export const firebaseSignup = ({ email, password }) =>
+  createUserWithEmailAndPassword(auth, email, password);
 
-export const getImageUrl = async (imagePath) => {
-    try {
-        return await new Promise((resolve) => {
-            getDownloadURL(ref(firebaseStorage, imagePath)).then((downloadUrl) => {
-                resolve(downloadUrl)
-            });
-          })
-    } catch (error) {
-      console.error('Error getting download URL:', error);
-      return null;
-    }
-  };
+export const signoutFirebaseUser = () => signOut(auth);
+
+export { auth };

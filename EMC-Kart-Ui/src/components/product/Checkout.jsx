@@ -1,77 +1,99 @@
-import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { clearCheckout } from '../../store/userStore';
-import { makeAuthenticatedRequest } from '../../service/axiosService';
+import { useDispatch, useSelector } from "react-redux";
+import { removeProductFromCheckout } from "../../store/userStore";
+import { makeAuthenticatedRequest } from "../../service/axiosService";
+import { useNavigate } from "react-router-dom";
 
 const Checkout = () => {
-    const { userData, checkoutProducts } = useSelector((state) => state.user);
-    const totalPrice = checkoutProducts.reduce((acc, curr) => Number(acc) + Number(curr.price), 0);
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { checkoutProducts } = useSelector((state) => state.user);
 
-    const initPayment = (data) => {
-		const options = {
-			key: import.meta.env.VITE_RAZORPAY_KEY,
-			amount: data.amount,
-			currency: data.currency,
-			description: `${userData?.name + ' Transaction'}`,
-			order_id: data.id,
-			handler: async (response) => {
-				try {
-					makeAuthenticatedRequest("api/product/verifyCheckout", "POST", response).then(() => {
-						dispatch(clearCheckout());
-                    	navigate('/finalFun');
-					});
-				} catch (error) {
-					console.error(error);
-				}
-			},
-			theme: {
-				color: "#3399cc",
-			},
-		};
-		const rzp1 = new window.Razorpay(options);
-		rzp1.open();
-	};
-
-	const handlePayment = async () => {
-		try {
-			makeAuthenticatedRequest("api/product/checkoutProducts", "POST", { amount: totalPrice }).then((data) => {
-				initPayment(data.data.data);
-			});
-		} catch (error) {
-			console.log(error);
-		}
-	};
-
+  if (checkoutProducts.length === 0) {
     return (
-        <div className="container mx-auto mt-8 p-4">
-			<h1 className="text-2xl font-semibold mb-4">Checkout</h1>
-			{totalPrice <= 0 ? 
-				<h1>Your cart is empty</h1> :
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-					{checkoutProducts.map((product) => (
-					<div className="border p-4 mb-4" key={product.id}>
-						<h2 className="text-lg font-semibold mb-2">{product.title}</h2>
-						<p className="text-gray-600">${product.price}</p>
-					</div>
-					))}
-				</div>
-			}
-			<div className="mt-8 border-t">
-				<h2 className="text-xl font-semibold mb-2">Order Summary</h2>
-				<p className="text-gray-600">Total: ${totalPrice}</p>
-				<button 
-					className={"bg-blue-500 text-white px-4 py-2 mt-4 rounded-full " + (totalPrice <= 0  ? "cursor-not-allowed" : "")}
-					onClick={() => handlePayment()}
-					disabled={totalPrice <= 0}
-				>
-					Place Order
-				</button>
-			</div>
-        </div>
+      <div className="p-6 text-center text-gray-500">
+        🛒 Your cart is empty
+      </div>
     );
+  }
+
+  const totalAmount = checkoutProducts.reduce(
+    (sum, item) => sum + Number(item.price),
+    0
+  );
+
+  const handlePayment = async () => {
+    try {
+      const res = await makeAuthenticatedRequest(
+        "api/product/checkoutProducts",
+        "POST",
+        { amount: totalAmount }
+      );
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY,
+        amount: res.data.data.amount,
+        currency: "INR",
+        order_id: res.data.data.id,
+        handler: () => {
+          navigate("/finalFun");
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error("Payment error", err);
+    }
+  };
+
+  return (
+    <div className="p-6 max-w-2xl mx-auto">
+      <h2 className="text-xl font-bold mb-4">Checkout</h2>
+
+      {checkoutProducts.map((p, index) => (
+        <div
+          key={index}
+          className="flex justify-between items-center border p-3 mb-3 rounded"
+        >
+          <div className="flex items-center gap-4">
+            <img
+              src={p.imagePath}
+              alt={p.title}
+              className="h-16 w-16 object-cover rounded"
+            />
+
+            <div>
+              <p className="font-semibold">{p.title}</p>
+              <p className="text-gray-600">₹{p.price}</p>
+            </div>
+          </div>
+
+          <button
+  onClick={() =>
+    dispatch(removeProductFromCheckout(p._id))
+  }
+  className="bg-red-500 text-white px-3 py-1 rounded"
+>
+  Remove
+</button>
+
+        </div>
+      ))}
+
+
+      {/* TOTAL + BUY NOW */}
+      <div className="mt-6 flex justify-between items-center border-t pt-4">
+        <h3 className="text-lg font-bold">Total: ₹{totalAmount}</h3>
+
+        <button
+          onClick={handlePayment}
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
+        >
+          Buy Now
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default Checkout;

@@ -1,50 +1,57 @@
-import './App.css'
-import Navbar from './components/common/Navbar'
-import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom'
-import Product from './components/product/Product'
-import Signup from './components/user/Signup'
-import Login from './components/user/Login'
-import ProductUpload from './components/product/ProductUpload'
-import Checkout from './components/product/Checkout'
-import { useSelector } from 'react-redux'
-import NotFound from './components/common/NotFound'
-import Final from './components/common/Final'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+import Navbar from "./components/common/Navbar";
+import Login from "./components/user/Login";
+import Signup from "./components/user/Signup";
+import Product from "./components/product/Product";
+import ProductUpload from "./components/product/ProductUpload";
+import Checkout from "./components/product/Checkout";
+import Final from "./components/common/Final";
 
 function App() {
   const { userData } = useSelector((state) => state.user);
 
-  const authCheck = (component) => {
-    return userData?.name ? component : <Navigate to="/login" />;
-  };
-
   return (
-    <>     
-      <BrowserRouter>
-        <Navbar />
-        <Routes>
-          <Route
-            path='/'
-            element={authCheck(<Product />)}
-          />
-          <Route path='/signup' element={<Signup />} />
-          <Route path='/login' element={<Login />} />
-          <Route
-            path='/productUpload'
-            element={authCheck(<ProductUpload />)}
-          />
-          <Route
-            path='/checkout'
-            element={authCheck(<Checkout />)}
-          />
-          <Route
-            path='/finalFun'
-            element={authCheck(<Final />)} />
-          <Route path='*' element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-      
-    </>
-  )
+    <BrowserRouter>
+      <Navbar />
+
+      <Routes>
+        {/* HOME */}
+        <Route
+          path="/"
+          element={userData ? <Product /> : <Navigate to="/login" />}
+        />
+
+        {/* ✅ CATEGORY ROUTE (THIS WAS MISSING) */}
+        <Route
+          path="/category/:category"
+          element={userData ? <Product /> : <Navigate to="/login" />}
+        />
+
+        {/* AUTH */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* ADMIN ONLY */}
+        <Route
+          path="/productUpload"
+          element={
+            userData?.isAdmin ? <ProductUpload /> : <Navigate to="/" />
+          }
+        />
+
+        {/* CART */}
+        <Route
+          path="/checkout"
+          element={userData ? <Checkout /> : <Navigate to="/login" />}
+        />
+
+        {/* SUCCESS */}
+        <Route path="/finalFun" element={<Final />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

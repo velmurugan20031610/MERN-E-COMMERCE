@@ -1,131 +1,94 @@
-import React, { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { registerUser } from '../../store/userStore';
-import { useNavigate } from 'react-router-dom';
-  
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { firebaseSignup } from "../../service/firebaseService";
 
 const Signup = () => {
-  const [userData, setUserData] = useState({});
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const {loading, error} = useSelector((state) => state.user)
+  const navigate = useNavigate();
 
-  const handleValueChange = (event) => {
-    const {id, value} = event.target
-    setUserData({...userData, [id] : value })
-  }
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
-  const handleSubmit = () => {
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+
     try {
-      dispatch(registerUser(userData)).then((response) => {
-        if(!response?.error) {
-          navigate('/login')
+      // 1️⃣ Firebase Signup
+      const cred = await firebaseSignup({
+        email: form.email,
+        password: form.password,
+      });
+
+      // 2️⃣ Get token
+      const token = await cred.user.getIdToken();
+      localStorage.setItem("token", token);
+
+      // 3️⃣ Register in Backend
+      await axios.post(
+        "http://localhost:8080/api/user/register",
+        {
+          uid: cred.user.uid,
+          email: form.email,
+          name: form.name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      })
+      );
+
+      navigate("/login");
     } catch (err) {
-      console.error(err)
+      alert(err.message);
     }
-  }
+  };
 
   return (
-    <>
-      <div className="w-full max-w-md mx-auto">            
-        <form className="bg-white rounded px-8 pt-6 pb-8 mb-4">
-          <p className="text-black-700 text-xl text-center font-bold mb-2">EMCKart Sign Up</p>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="name"
-            >
-              <span className="ml-1">Name</span>
-              <span className="text-red-500"> *</span>
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="name"
-              type="text"
-              placeholder="Enter your name"
-              onChange={(event) => handleValueChange(event)}
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="email"
-            >
-              <span className="ml-1">Email</span>
-              <span className="text-red-500"> *</span>
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              onChange={(event) => handleValueChange(event)}
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="phone"
-            >
-              <span className="ml-1">Phone Number</span>
-              <span className="text-red-500"> *</span>
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="phone_number"
-              type="tel"
-              placeholder="Enter your phone number"
-              onChange={(event) => handleValueChange(event)}
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="password"
-            >
-              <span className="ml-1">Password</span>
-              <span className="text-red-500"> *</span>
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              onChange={(event) => handleValueChange(event)}
-            />
-          </div>
-          <div className="mb-6">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="confirmPassword"
-            >
-              <span className="ml-1">Delivery Address</span>
-              <span className="text-red-500"> *</span>
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="address"
-              type="text"
-              placeholder="Delivery Address"
-              onChange={(event) => handleValueChange(event)}
-            />
-          </div>
-          { error && <p className='block text-red-500 text-sm mb-2'>* {error}</p> }
-          <div className="flex items-center justify-center">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline "
-              type="button"
-              onClick={() => handleSubmit()}
-              disabled={loading}
-            >
-              { loading ? "Loading" : "Sign Up" }
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
+    <div className="flex justify-center mt-20">
+      <form
+        onSubmit={handleSignup}
+        className="bg-white p-6 rounded shadow w-96"
+      >
+        <h2 className="text-xl font-bold mb-4">Signup</h2>
+
+        <input
+          name="name"
+          placeholder="Name"
+          onChange={handleChange}
+          className="border p-2 w-full mb-3"
+          required
+        />
+
+        <input
+          name="email"
+          type="email"
+          placeholder="Email"
+          onChange={handleChange}
+          className="border p-2 w-full mb-3"
+          required
+        />
+
+        <input
+          name="password"
+          type="password"
+          placeholder="Password"
+          onChange={handleChange}
+          className="border p-2 w-full mb-3"
+          required
+        />
+
+        <button className="bg-blue-600 text-white w-full p-2 rounded">
+          Signup
+        </button>
+      </form>
+    </div>
   );
 };
 

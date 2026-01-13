@@ -1,14 +1,16 @@
-module.exports = app => {
-    const products = require("../controller/product.controller");
-    const verifyToken = require("../utility/commonFunctions");
-  
-    var router = require("express").Router();
-  
-    router.get("/", verifyToken, products.fetchAll);
-    router.post("/create", verifyToken, products.create);
-    router.post("/checkoutProducts", products.checkoutProducts);
-    router.post("/verifyCheckout", products.verifyCheckout);
+module.exports = (app) => {
+  const products = require("../controller/product.controller");
+  const verifyToken = require("../utility/commonFunctions");
 
+  const router = require("express").Router();
 
-    app.use("/api/product", router);
+  // ✅ PUBLIC – SHOW PRODUCTS
+  router.get("/", products.fetchAll);
+
+  // 🔒 PROTECTED
+  router.post("/create", verifyToken, products.create);
+  router.post("/checkoutProducts", verifyToken, products.checkoutProducts);
+  router.post("/verifyCheckout", verifyToken, products.verifyCheckout);
+
+  app.use("/api/product", router);
 };

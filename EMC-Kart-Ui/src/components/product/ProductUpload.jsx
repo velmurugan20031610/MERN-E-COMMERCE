@@ -1,140 +1,129 @@
-// src/components/Modal.js
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { createProduct } from '../../store/productStore';
-import { Alert } from 'antd';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { createProduct } from "../../store/productStore";
+import { Alert } from "antd";
 
 const ProductUpload = () => {
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.product);
+
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    price: '',
-    imagePath: null,
+    title: "",
+    description: "",
+    price: "",
+    category: "", // ✅
   });
+
   const [productImage, setProductImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [successFlag, setSuccessFlag] = useState(false);
-  const [message, setMessage] = useState(null);
-  const dispatch = useDispatch();
-  const {loading, error} = useSelector((state) => state.product)
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const uploadImageToCloudinary = async (file) => {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "emckart_unsigned");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dvoqthbls/image/upload",
+      {
+        method: "POST",
+        body: data,
+      }
+    );
+
+    const result = await res.json();
+    return result.secure_url;
   };
 
-  const handleSubmit = () => {
-    try {
-      dispatch(createProduct({productImage, formData})).then((response) => {
-        setSuccessFlag(true)
-        setMessage("Product uploaded successfully")
-        setFormData({
-          title: '',
-          description: '',
-          price: '',
-          imagePath: null,
-        })
-        setPreviewImage(null)
-      })
-    } catch (err) {
-      console.error(err)
-    }
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setProductImage(file);
+    setPreviewImage(URL.createObjectURL(file));
+  };
 
-    if (file) {
-      const reader = new FileReader();
+  const handleSubmit = async () => {
+    let imageUrl = "";
 
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-
-      reader.readAsDataURL(file);
+    if (productImage) {
+      imageUrl = await uploadImageToCloudinary(productImage);
     }
+
+    dispatch(
+      createProduct({
+        ...formData,
+        imagePath: imageUrl,
+      })
+    ).then(() => {
+      setSuccessFlag(true);
+      setFormData({ title: "", description: "", price: "", category: "" });
+      setProductImage(null);
+      setPreviewImage(null);
+    });
   };
 
   return (
-      <div className="modal-container bg-white w-96 mx-auto mt-24 p-4 rounded shadow">
-        <h3 className="text-lg text-gray-800 font-bold text-center mb-3">Product Upload</h3>
-        {successFlag && <Alert message={message} type="success" showIcon closable />}
-        {error && <Alert message={error} type="error" showIcon closable />}
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className="mt-1 p-2 w-full border rounded-md"
-          />
+    <div className="bg-white w-96 mx-auto mt-20 p-6 rounded shadow">
+      <h2 className="text-xl font-bold text-center mb-4">Add Product</h2>
 
-          <label htmlFor="description" className="block mt-2 text-sm font-medium text-gray-700">
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            className="mt-1 p-2 w-full border rounded-md"
-          ></textarea>
+      {successFlag && <Alert message="Product added" type="success" showIcon />}
+      {error && <Alert message="Upload failed" type="error" showIcon />}
 
-          <label htmlFor="price" className="block mt-2 text-sm font-medium text-gray-700">
-            Price
-          </label>
-          <input
-            type="number"
-            id="price"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            className="mt-1 p-2 w-full border rounded-md"
-          />
+      <input
+        name="title"
+        placeholder="Title"
+        value={formData.title}
+        onChange={handleChange}
+        className="w-full p-2 border rounded mt-2"
+      />
 
-          <label htmlFor="image" className="block mt-2 text-sm font-medium text-gray-700">
-            Image
-          </label>
-          <input
-            type="file"
-            id="image"
-            name="image"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="mt-1 p-2 w-full border rounded-md"
-          />
-          {previewImage && (
-            <div>
-              <label htmlFor="imagePreview" className="block mt-2 text-sm font-medium text-gray-700">
-              Preview
-              </label>
-              <img
-                src={previewImage}
-                alt="Preview"
-                className="max-w-full h-auto mb-4 rounded"
-              />
-            </div>
-          )}          
-        </form>
-        <div className="flex items-center justify-center">
-          <button 
-            type="submit"
-            className="mt-4 bg-blue-500 text-white p-2 rounded-md text-center"
-            onClick={() => handleSubmit()}
-            disabled={loading}
-          >
-            { loading ? "Uploading..." : "Upload" }
-          </button>
-        </div>
-      </div>
+      <textarea
+        name="description"
+        placeholder="Description"
+        value={formData.description}
+        onChange={handleChange}
+        className="w-full p-2 border rounded mt-2"
+      />
+
+      <input
+        type="number"
+        name="price"
+        placeholder="Price"
+        value={formData.price}
+        onChange={handleChange}
+        className="w-full p-2 border rounded mt-2"
+      />
+
+      {/* ✅ CATEGORY */}
+      <select
+        name="category"
+        value={formData.category}
+        onChange={handleChange}
+        className="w-full p-2 border rounded mt-2"
+      >
+        <option value="">Select Category</option>
+        <option value="dress">Dress</option>
+        <option value="electronics">Electronics</option>
+        <option value="shoes">Shoes</option>
+      </select>
+
+      <input type="file" onChange={handleImageChange} className="mt-3" />
+
+      {previewImage && (
+        <img src={previewImage} className="mt-3 rounded" />
+      )}
+
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className="bg-blue-600 text-white w-full mt-4 p-2 rounded"
+      >
+        Upload Product
+      </button>
+    </div>
   );
 };
 
