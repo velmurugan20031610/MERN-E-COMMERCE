@@ -2,23 +2,33 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { firebaseLogin, signoutFirebaseUser } from "../service/firebaseService";
 
+/**
+ * Backend API base URL
+ * Comes from Vercel Environment Variable
+ * VITE_API_URL = https://emckart-api.onrender.com
+ */
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const loginUser = createAsyncThunk(
   "user/login",
   async ({ email, password }, { rejectWithValue }) => {
     try {
       const cred = await firebaseLogin({ email, password });
+
       const token = await cred.user.getIdToken();
       localStorage.setItem("token", token);
 
       const res = await axios.post(
-        "http://localhost:8080/api/user/validate",
+        `${API_URL}/api/user/validate`,
         {
           uid: cred.user.uid,
           email: cred.user.email,
           name: cred.user.email.split("@")[0],
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
