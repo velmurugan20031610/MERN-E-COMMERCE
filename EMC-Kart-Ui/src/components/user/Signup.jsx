@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { firebaseSignup } from "../../service/firebaseService";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Signup = () => {
   const navigate = useNavigate();
 
@@ -19,19 +21,16 @@ const Signup = () => {
     e.preventDefault();
 
     try {
-      // 1️⃣ Firebase Signup
       const cred = await firebaseSignup({
         email: form.email,
         password: form.password,
       });
 
-      // 2️⃣ Get token
       const token = await cred.user.getIdToken();
       localStorage.setItem("token", token);
 
-      // 3️⃣ Register in Backend
       await axios.post(
-        "http://localhost:8080/api/user/register",
+        `${API_URL}/api/user/register`,
         {
           uid: cred.user.uid,
           email: form.email,
@@ -46,16 +45,19 @@ const Signup = () => {
 
       navigate("/login");
     } catch (err) {
-      alert(err.message);
+      if (err.code === "auth/email-already-in-use") {
+        alert("Email already registered. Please login.");
+      } else if (err.code === "auth/weak-password") {
+        alert("Password must be at least 6 characters.");
+      } else {
+        alert(err.message);
+      }
     }
   };
 
   return (
     <div className="flex justify-center mt-20">
-      <form
-        onSubmit={handleSignup}
-        className="bg-white p-6 rounded shadow w-96"
-      >
+      <form onSubmit={handleSignup} className="bg-white p-6 rounded shadow w-96">
         <h2 className="text-xl font-bold mb-4">Signup</h2>
 
         <input

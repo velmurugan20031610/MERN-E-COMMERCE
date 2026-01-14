@@ -39,40 +39,30 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          EMCKart Login
-        </h2>
+        <h2 className="text-2xl font-bold text-center mb-6">EMCKart Login</h2>
 
         {localError && (
-          <p className="text-red-500 text-center mb-3">
-            {localError}
-          </p>
+          <p className="text-red-500 text-center mb-3">{localError}</p>
         )}
 
         <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full border p-2 rounded"
-            />
-          </div>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded mb-4"
+          />
 
-          <div className="mb-6">
-            <label>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full border p-2 rounded"
-            />
-          </div>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded mb-6"
+          />
 
           <button
             type="submit"

@@ -9,7 +9,7 @@ export const createProduct = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const response = await makeAuthenticatedRequest(
-        "api/product/create",
+        "/api/product/create",
         "POST",
         formData
       );
@@ -35,7 +35,7 @@ const productSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      /* CREATE PRODUCT */
+      // CREATE PRODUCT
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
         state.error = null;

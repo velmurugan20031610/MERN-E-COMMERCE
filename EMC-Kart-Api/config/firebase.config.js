@@ -1,5 +1,8 @@
 const admin = require("firebase-admin");
-
+ 
+if (!process.env.FIREBASE_PRIVATE_KEY) {
+  throw new Error("FIREBASE_PRIVATE_KEY missing in environment");
+}
 admin.initializeApp({
   credential: admin.credential.cert({
     type: "service_account",

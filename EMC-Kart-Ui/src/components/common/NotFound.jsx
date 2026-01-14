@@ -3,5 +3,6 @@ const NotFound = () => (
     <h1 className="text-5xl font-bold">404 | Page Not Found</h1>
   </div>
 );
+console.log("API URL:", import.meta.env.VITE_API_URL);
 
 export default NotFound;

@@ -6,48 +6,63 @@ const User = db.user;
 ========================= */
 exports.registerUser = async (req, res) => {
   try {
-    const { uid, email, name } = req.body;
+    const decoded = req.user;
 
-    if (!uid || !email) {
-      return res.status(400).json({ message: "Missing fields" });
+    const email = decoded.email;
+    const uid = decoded.uid;
+
+    if (!email || !uid) {
+      return res.status(400).json({ message: "Invalid token data" });
     }
 
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return res.status(200).json(existingUser);
-    }
-
-    const newUser = new User({
-      uid,
-      email,
-      name,
-      isAdmin: false,
-    });
-
-    await newUser.save();
-
-    res.status(201).json(newUser);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-/* =========================
-   LOGIN / VALIDATE USER
-========================= */
-exports.validateUser = async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      user = new User({
+        uid,
+        email,
+        name: email.split("@")[0],
+        isAdmin: false,
+      });
+      await user.save();
     }
 
     res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ message: "Register failed" });
+  }
+};
+
+/* =========================
+   VALIDATE USER (LOGIN)
+========================= */
+exports.validateUser = async (req, res) => {
+  try {
+    const decoded = req.user;
+
+    const email = decoded.email;
+    const uid = decoded.uid;
+
+    if (!email || !uid) {
+      return res.status(400).json({ message: "Invalid token data" });
+    }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({
+        uid,
+        email,
+        name: email.split("@")[0],
+        isAdmin: false,
+      });
+      await user.save();
+    }
+
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("VALIDATE ERROR:", err);
+    res.status(500).json({ message: "Login failed" });
   }
 };

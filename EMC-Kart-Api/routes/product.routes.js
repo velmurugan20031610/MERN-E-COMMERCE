@@ -4,10 +4,10 @@ module.exports = (app) => {
 
   const router = require("express").Router();
 
-  // ✅ PUBLIC – SHOW PRODUCTS
+  // PUBLIC – FETCH PRODUCTS
   router.get("/", products.fetchAll);
 
-  // 🔒 PROTECTED
+  // ADMIN ONLY
   router.post("/create", verifyToken, products.create);
   router.post("/checkoutProducts", verifyToken, products.checkoutProducts);
   router.post("/verifyCheckout", verifyToken, products.verifyCheckout);

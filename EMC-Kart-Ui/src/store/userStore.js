@@ -2,11 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { firebaseLogin, signoutFirebaseUser } from "../service/firebaseService";
 
-/**
- * Backend API base URL
- * Comes from Vercel Environment Variable
- * VITE_API_URL = https://emckart-api.onrender.com
- */
+// ✅ API URL from Vite env
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const loginUser = createAsyncThunk(
@@ -34,7 +30,7 @@ export const loginUser = createAsyncThunk(
 
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(err.response?.data || err.message);
     }
   }
 );
@@ -45,6 +41,7 @@ const userSlice = createSlice({
     userData: null,
     checkoutProducts: [],
     searchText: "",
+    loading: false, // ✅ FIX
   },
   reducers: {
     clearUser: (state) => {
@@ -64,9 +61,17 @@ const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(loginUser.fulfilled, (state, action) => {
-      state.userData = action.payload;
-    });
+    builder
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userData = action.payload;
+      })
+      .addCase(loginUser.rejected, (state) => {
+        state.loading = false;
+      });
   },
 });
 

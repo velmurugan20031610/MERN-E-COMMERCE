@@ -2,27 +2,27 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import ProductCard from "./ProductCard";
-import { makeAuthenticatedRequest } from "../../service/axiosService";
 
 const Product = () => {
   const [products, setProducts] = useState([]);
   const { searchText } = useSelector((state) => state.user);
-  const { category } = useParams(); // 👈 category from URL
+  const { category } = useParams();
 
   useEffect(() => {
-    makeAuthenticatedRequest("api/product", "GET")
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.error(err));
+    fetch(`${import.meta.env.VITE_API_URL}/api/product/`)
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch((err) => console.error("Product fetch error:", err));
   }, []);
 
-  // ✅ CATEGORY FILTER
+  // CATEGORY FILTER
   let filteredProducts = category
     ? products.filter(
         (p) => p.category?.toLowerCase() === category.toLowerCase()
       )
     : products;
 
-  // ✅ SEARCH FILTER
+  // SEARCH FILTER
   filteredProducts = filteredProducts.filter((p) =>
     p.title.toLowerCase().includes(searchText.toLowerCase())
   );
@@ -47,7 +47,7 @@ const Product = () => {
         >
           {filteredProducts.map((product) => (
             <ProductCard
-              key={product.id || product._id}
+              key={product._id}   //  FIX
               product={product}
             />
           ))}
