@@ -13,5 +13,6 @@ admin.initializeApp({
     client_id: process.env.FIREBASE_CLIENT_ID,
   }),
 });
+console.log("🔥 Firebase Admin initialized");
 
 module.exports = admin;

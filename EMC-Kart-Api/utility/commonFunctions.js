@@ -12,12 +12,10 @@ const verifyToken = async (req, res, next) => {
 
     const decodedToken = await admin.auth().verifyIdToken(token);
 
-    // ✅ Attach decoded user
     req.user = decodedToken;
-
     next();
-  } catch (error) {
-    console.error("VERIFY TOKEN ERROR:", error.message);
+  } catch (err) {
+    console.error("🔥 TOKEN VERIFY ERROR:", err);
     return res.status(401).json({ message: "Invalid token" });
   }
 };

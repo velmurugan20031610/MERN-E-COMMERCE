@@ -6,12 +6,11 @@ const User = db.user;
 ========================= */
 exports.registerUser = async (req, res) => {
   try {
-    const decoded = req.user;
+    console.log("🟡 REGISTER req.user:", req.user);
 
-    const email = decoded.email;
-    const uid = decoded.uid;
+    const { uid, email } = req.user;
 
-    if (!email || !uid) {
+    if (!uid || !email) {
       return res.status(400).json({ message: "Invalid token data" });
     }
 
@@ -29,8 +28,8 @@ exports.registerUser = async (req, res) => {
 
     res.status(200).json(user);
   } catch (err) {
-    console.error("REGISTER ERROR:", err);
-    res.status(500).json({ message: "Register failed" });
+    console.error("🔥 REGISTER ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -39,12 +38,11 @@ exports.registerUser = async (req, res) => {
 ========================= */
 exports.validateUser = async (req, res) => {
   try {
-    const decoded = req.user;
+    console.log("🟡 VALIDATE req.user:", req.user);
 
-    const email = decoded.email;
-    const uid = decoded.uid;
+    const { uid, email } = req.user;
 
-    if (!email || !uid) {
+    if (!uid || !email) {
       return res.status(400).json({ message: "Invalid token data" });
     }
 
@@ -62,7 +60,7 @@ exports.validateUser = async (req, res) => {
 
     res.status(200).json(user);
   } catch (err) {
-    console.error("VALIDATE ERROR:", err);
-    res.status(500).json({ message: "Login failed" });
+    console.error("🔥 VALIDATE ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 };
