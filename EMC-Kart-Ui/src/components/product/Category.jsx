@@ -10,11 +10,15 @@ const Category = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    makeAuthenticatedRequest("api/product", "GET").then((res) => {
-      setProducts(
-        res.data.filter((p) => p.category === category)
-      );
-    });
+    makeAuthenticatedRequest("/api/product", "GET") // ✅ FIXED SLASH
+      .then((res) => {
+        const filteredByCategory = res.data.filter(
+          (p) =>
+            p.category?.toLowerCase() === category.toLowerCase() // ✅ FIX
+        );
+        setProducts(filteredByCategory);
+      })
+      .catch((err) => console.error("Category fetch error:", err));
   }, [category]);
 
   const filtered = products.filter((p) =>
@@ -23,9 +27,13 @@ const Category = () => {
 
   return (
     <div className="flex flex-wrap gap-6 justify-center mt-6">
-      {filtered.map((p) => (
-        <ProductCard key={p.id || p._id} product={p} />
-      ))}
+      {filtered.length === 0 ? (
+        <p className="text-gray-500 mt-10">No products found</p>
+      ) : (
+        filtered.map((p) => (
+          <ProductCard key={p._id} product={p} />
+        ))
+      )}
     </div>
   );
 };

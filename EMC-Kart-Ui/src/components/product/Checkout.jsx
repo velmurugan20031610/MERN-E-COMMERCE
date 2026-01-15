@@ -24,17 +24,20 @@ const Checkout = () => {
   const handlePayment = async () => {
     try {
       const res = await makeAuthenticatedRequest(
-        "api/product/checkoutProducts",
+        "/api/product/checkoutProducts",
         "POST",
         { amount: totalAmount }
       );
 
+      // 🔥 FIX: support both response formats
+      const order = res.data.data || res.data;
+
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY,
-        amount: res.data.data.amount,
-        currency: "INR",
-        order_id: res.data.data.id,
-        handler: () => {
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.id,
+        handler: function () {
           navigate("/finalFun");
         },
       };
@@ -46,21 +49,26 @@ const Checkout = () => {
     }
   };
 
+
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h2 className="text-xl font-bold mb-4">Checkout</h2>
 
-      {checkoutProducts.map((p, index) => (
+      {checkoutProducts.map((p) => (
         <div
-          key={index}
+          key={p._id}
           className="flex justify-between items-center border p-3 mb-3 rounded"
         >
           <div className="flex items-center gap-4">
             <img
-              src={p.imagePath}
+              src={p.imagePath || "https://via.placeholder.com/300"}
               alt={p.title}
               className="h-16 w-16 object-cover rounded"
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/300";
+              }}
             />
+
 
             <div>
               <p className="font-semibold">{p.title}</p>
@@ -69,19 +77,14 @@ const Checkout = () => {
           </div>
 
           <button
-  onClick={() =>
-    dispatch(removeProductFromCheckout(p._id))
-  }
-  className="bg-red-500 text-white px-3 py-1 rounded"
->
-  Remove
-</button>
-
+            onClick={() => dispatch(removeProductFromCheckout(p._id))}
+            className="bg-red-500 text-white px-3 py-1 rounded"
+          >
+            Remove
+          </button>
         </div>
       ))}
 
-
-      {/* TOTAL + BUY NOW */}
       <div className="mt-6 flex justify-between items-center border-t pt-4">
         <h3 className="text-lg font-bold">Total: ₹{totalAmount}</h3>
 
