@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -12,15 +12,24 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+// Prevent re-initialization
+const app = getApps().length === 0
+  ? initializeApp(firebaseConfig)
+  : getApps()[0];
+
 const auth = getAuth(app);
 
-export const firebaseLogin = ({ email, password }) =>
-  signInWithEmailAndPassword(auth, email, password);
+export const firebaseLogin = ({ email, password }) => {
+  return signInWithEmailAndPassword(auth, email, password);
+};
 
-export const firebaseSignup = ({ email, password }) =>
-  createUserWithEmailAndPassword(auth, email, password);
+export const firebaseSignup = ({ email, password }) => {
+  return createUserWithEmailAndPassword(auth, email, password);
+};
 
-export const signoutFirebaseUser = () => signOut(auth);
+export const signoutFirebaseUser = () => {
+  return signOut(auth);
+};
 
 export { auth };
+
