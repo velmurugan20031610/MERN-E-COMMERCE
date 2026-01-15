@@ -6,7 +6,7 @@ const User = db.user;
 ========================= */
 exports.registerUser = async (req, res) => {
   try {
-    console.log("🟡 REGISTER req.user:", req.user);
+    console.log(" REGISTER req.user:", req.user);
 
     const { uid, email } = req.user;
 
@@ -28,7 +28,7 @@ exports.registerUser = async (req, res) => {
 
     res.status(200).json(user);
   } catch (err) {
-    console.error("🔥 REGISTER ERROR:", err);
+    console.error(" REGISTER ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -38,16 +38,15 @@ exports.registerUser = async (req, res) => {
 ========================= */
 exports.validateUser = async (req, res) => {
   try {
-    console.log("🟡 VALIDATE req.user:", req.user);
+    const { email, uid } = req.user;
 
-    const { uid, email } = req.user;
-
-    if (!uid || !email) {
+    if (!email || !uid) {
       return res.status(400).json({ message: "Invalid token data" });
     }
 
     let user = await User.findOne({ email });
 
+    //  AUTO-CREATE USER IF NOT EXISTS
     if (!user) {
       user = new User({
         uid,
@@ -60,7 +59,7 @@ exports.validateUser = async (req, res) => {
 
     res.status(200).json(user);
   } catch (err) {
-    console.error("🔥 VALIDATE ERROR:", err);
-    res.status(500).json({ message: err.message });
+    console.error("VALIDATE ERROR:", err);
+    res.status(500).json({ message: "Login failed" });
   }
 };
