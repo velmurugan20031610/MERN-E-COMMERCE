@@ -2,36 +2,34 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { firebaseLogin, signoutFirebaseUser } from "../service/firebaseService";
 
-// ✅ API URL from Vite env
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const loginUser = createAsyncThunk(
   "user/login",
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const cred = await firebaseLogin({ email, password });
+  async ({ email, password }) => {
+    // Firebase login
+    const cred = await firebaseLogin({ email, password });
 
-      const token = await cred.user.getIdToken();
-      localStorage.setItem("token", token);
+    // Firebase token
+    const token = await cred.user.getIdToken();
+    localStorage.setItem("token", token);
 
-      const res = await axios.post(
-        `${API_URL}/api/user/validate`,
-        {
-          uid: cred.user.uid,
-          email: cred.user.email,
-          name: cred.user.email.split("@")[0],
+    // Backend validation
+    const res = await axios.post(
+      `${API_URL}/api/user/validate`,
+      {
+        uid: cred.user.uid,
+        email: cred.user.email,
+        name: cred.user.email.split("@")[0],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      }
+    );
 
-      return res.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
-    }
+    return res.data;
   }
 );
 
@@ -41,7 +39,7 @@ const userSlice = createSlice({
     userData: null,
     checkoutProducts: [],
     searchText: "",
-    loading: false, // ✅ FIX
+    loading: false,
   },
   reducers: {
     clearUser: (state) => {

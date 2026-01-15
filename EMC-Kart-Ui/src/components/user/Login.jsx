@@ -29,7 +29,7 @@ const Login = () => {
 
     const res = await dispatch(loginUser(formData));
 
-    if (res.meta.requestStatus === "fulfilled") {
+    if (loginUser.fulfilled.match(res)) {
       navigate("/");
     } else {
       setLocalError("Invalid email or password");
@@ -39,10 +39,14 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">EMCKart Login</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">
+          EMCKart Login
+        </h2>
 
         {localError && (
-          <p className="text-red-500 text-center mb-3">{localError}</p>
+          <p className="text-red-500 text-center mb-3">
+            {localError}
+          </p>
         )}
 
         <form onSubmit={handleLogin}>

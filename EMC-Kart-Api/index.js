@@ -4,27 +4,33 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://mern-e-commerce-kn9rfd3of-velmurugans-projects-e7562622.vercel.app"
-  ],
-  credentials: true
-}));
+/* ===== FINAL CORS FIX ===== */
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// Handle preflight requests
+app.options("*", cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔥 Firebase Admin (LOAD ONCE)
+// Firebase Admin (load once)
 require("./config/firebase.config");
 
-// 🔥 MongoDB
+// MongoDB
 const db = require("./models");
 
 db.mongoose
   .connect(db.url)
-  .then(() => console.log("✅ Database connected"))
+  .then(() => console.log("Database connected"))
   .catch((err) => {
-    console.error("❌ DB error", err);
+    console.error("DB error", err);
     process.exit(1);
   });
 
@@ -39,5 +45,5 @@ require("./routes/product.routes")(app);
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
