@@ -6,7 +6,7 @@ module.exports = mongoose => {
       price: Number,
       imagePath: String,
 
-      // ✅ CATEGORY
+      //  CATEGORY
       category: {
         type: String,
         required: true,

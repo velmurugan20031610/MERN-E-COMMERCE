@@ -23,7 +23,7 @@ function App() {
           element={userData ? <Product /> : <Navigate to="/login" />}
         />
 
-        {/* ✅ CATEGORY ROUTE (THIS WAS MISSING) */}
+        {/*  CATEGORY ROUTE (THIS WAS MISSING) */}
         <Route
           path="/category/:category"
           element={userData ? <Product /> : <Navigate to="/login" />}
